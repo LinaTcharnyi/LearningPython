@@ -1,0 +1,257 @@
+openapi: 3.0.1
+info:
+  title: Seequent Todo API
+  description: 'This is a small API for the Seequent coding test. It includes Todo items and simple User management.'
+  contact:
+    email: franklin.koch@seequent.com
+  version: 1.0.0
+servers:
+- url: http://localhost:5000
+paths:
+  /:
+    get:
+      summary: Get hypermedia API links
+      operationId: get_root
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RootLinks'
+  /todos:
+    get:
+      summary: Get links to all Todo objects
+      operationId: get_todos
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+    post:
+      summary: Create a new Todo object
+      operationId: create_todo
+      requestBody:
+        description: Todo object that needs to be created
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoStrictRequest'
+        required: true
+      responses:
+        422:
+          description: Invalid input
+          content: {}
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+  /todos/{todo_id}:
+    get:
+      summary: Get Todo object by ID
+      operationId: get_todo_by_id
+      parameters:
+      - name: todo_id
+        in: path
+        description: ID of Todo object to return
+        required: true
+        schema:
+          type: string
+      responses:
+        404:
+          description: Todo ID not found
+          content: {}
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+    patch:
+      summary: Edit existing Todo object by ID
+      operationId: edit_todo_by_id
+      parameters:
+      - name: todo_id
+        in: path
+        description: ID of Todo object to return
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Modified Todo object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoRequest'
+        required: true
+      responses:
+        404:
+          description: Todo ID not found
+          content: {}
+        422:
+          description: Invalid input
+          LT added: I am going to assume "Invalid input" means anything other than alphanumeric
+          content: {}
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+    delete:
+      summary: Delete existing Todo object by ID
+      operationId: delete_todo_by_id
+      parameters:
+      - name: todo_id
+        in: path
+        description: ID of Todo object to return
+        required: true
+        schema:
+          type: string
+      responses:
+        404:
+          description: Todo ID not found
+          content: {}
+        204:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RootLinks'
+  /users:
+    get:
+      summary: Get links to all User objects
+      operationId: get_users
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+    post:
+      summary: Create a new User object - emails must be unique and passwords must be kept secure!
+      operationId: create_user
+      requestBody:
+        description: User object to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      responses:
+        422:
+          description: Invalid input
+          content: {}
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+  /users/{user_id}:
+    get:
+      summary: Get User object by ID
+      operationId: get_user_by_id
+      parameters:
+      - name: user_id
+        in: path
+        description: ID of User object to return
+        required: true
+        schema:
+          type: string
+      responses:
+        404:
+          description: User ID not found
+          content: {}
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+components:
+  schemas:
+    RootLinks:
+      type: object
+      properties:
+        links:
+          type: object
+          properties:
+            todos:
+              type: string
+              format: uri
+            users:
+              type: string
+              format: uri
+    SelfLink:
+      type: object
+      properties:
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+    ListResponse:
+      allOf:
+        - $ref: '#/components/schemas/SelfLink'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: string
+                format: uri
+    TodoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+    TodoStrictRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+    TodoResponse:
+      allOf:
+        - $ref: '#/components/schemas/SelfLink'
+        - $ref: '#/components/schemas/TodoRequest'
+    UserRequest:
+      type: object
+      required:
+        - email
+        - username
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+    UserResponse:
+      allOf:
+        - $ref: '#/components/schemas/SelfLink'
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+            username:
+              type: string
+            name:
+              type: string
